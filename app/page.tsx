@@ -2,6 +2,7 @@
 import { useRef } from 'react';
 import { Hero } from '@/components/sections/Hero';
 import { Services } from '@/components/sections/Services';
+import { BookingFlow } from '@/components/sections/BookingFlow';
 import { Footer } from '@/components/ui/Footer';
 
 export default function HomePage() {
@@ -13,7 +14,7 @@ export default function HomePage() {
       <Hero onAgendaClick={scrollToAgenda} />
       <Services />
       <div ref={agendaRef} style={{ scrollMarginTop: 64 }}>
-        {/* Task 12 replaces this with <BookingFlow /> */}
+        <BookingFlow />
       </div>
       <Footer note="Clases virtuales 1-on-1 · A1 – C1 · TOEFL, IELTS, CELPIP, OET" />
     </main>

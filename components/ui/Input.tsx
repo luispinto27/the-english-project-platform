@@ -21,8 +21,8 @@ export function Input({
 }) {
   const id = useId();
   return (
-    <label className={styles.wrapper} htmlFor={id}>
-      <span className={styles.label}>{label}</span>
+    <div className={styles.wrapper}>
+      <label className={styles.label} htmlFor={id}>{label}</label>
       <input
         id={id}
         className={[styles.input, error ? styles.inputError : ''].join(' ')}
@@ -32,6 +32,6 @@ export function Input({
         onChange={(e) => onChange(e.target.value)}
       />
       {error ? <span className={styles.error}>{error}</span> : helper ? <span className={styles.helper}>{helper}</span> : null}
-    </label>
+    </div>
   );
 }
