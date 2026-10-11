@@ -15,7 +15,10 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const json = await request.json();
+  const json = await request.json().catch(() => null);
+  if (json === null) {
+    return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 });
+  }
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }, { status: 400 });
