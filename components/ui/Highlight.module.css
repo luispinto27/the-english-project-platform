@@ -1,0 +1,4 @@
+.highlight {
+  display: inline-block; background: var(--lime-500); color: #000;
+  padding: 2px 8px; transform: rotate(-2deg); border-radius: 6px;
+}
