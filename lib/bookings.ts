@@ -59,7 +59,7 @@ export async function createBooking(
       },
     };
   } catch (err: any) {
-    if (String(err?.message ?? '').includes('bookings_date_slot_confirmed_idx') || err?.code === '23505') {
+    if (err?.code === '23505' && err?.constraint === 'bookings_date_slot_confirmed_idx') {
       return { ok: false, error: 'SLOT_TAKEN' };
     }
     throw err;
