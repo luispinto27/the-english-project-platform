@@ -24,22 +24,30 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }, { status: 400 });
   }
 
-  const result = await createBooking(db, parsed.data);
-  if (!result.ok) {
-    const status = result.error === 'SLOT_TAKEN' ? 409 : 400;
-    const message = result.error === 'SLOT_TAKEN'
-      ? 'Ese horario ya fue tomado, elige otro.'
-      : 'Ese horario ya no está disponible, elige otro.';
-    return NextResponse.json({ error: message }, { status });
+  try {
+    const result = await createBooking(db, parsed.data);
+    if (!result.ok) {
+      const status = result.error === 'SLOT_TAKEN' ? 409 : 400;
+      const message = result.error === 'SLOT_TAKEN'
+        ? 'Ese horario ya fue tomado, elige otro.'
+        : 'Ese horario ya no está disponible, elige otro.';
+      return NextResponse.json({ error: message }, { status });
+    }
+
+    const dayLabel = fmtDayLabel(result.booking.classDate);
+    const timeLabel = `${fmtTime(result.booking.minuteOfDay)} – ${fmtTime(result.booking.minuteOfDay + 30)}`;
+    const whatsappUrl = buildWhatsappUrl({ dayLabel, timeLabel: fmtTime(result.booking.minuteOfDay) });
+    const gcalUrl = buildGcalUrl({ classDate: result.booking.classDate, minuteOfDay: result.booking.minuteOfDay });
+
+    const emailParams = { ...result.booking, dayLabel, timeLabel, whatsappUrl };
+    await Promise.all([sendBookingConfirmation(emailParams), sendAdminNotification(emailParams)]);
+
+    return NextResponse.json({ booking: result.booking, dayLabel, timeLabel, whatsappUrl, gcalUrl }, { status: 201 });
+  } catch (err) {
+    console.error('POST /api/bookings failed', err);
+    return NextResponse.json(
+      { error: 'No pudimos completar tu reserva. Intenta de nuevo en un momento.' },
+      { status: 500 }
+    );
   }
-
-  const dayLabel = fmtDayLabel(result.booking.classDate);
-  const timeLabel = `${fmtTime(result.booking.minuteOfDay)} – ${fmtTime(result.booking.minuteOfDay + 30)}`;
-  const whatsappUrl = buildWhatsappUrl({ dayLabel, timeLabel: fmtTime(result.booking.minuteOfDay) });
-  const gcalUrl = buildGcalUrl({ classDate: result.booking.classDate, minuteOfDay: result.booking.minuteOfDay });
-
-  const emailParams = { ...result.booking, dayLabel, timeLabel, whatsappUrl };
-  await Promise.all([sendBookingConfirmation(emailParams), sendAdminNotification(emailParams)]);
-
-  return NextResponse.json({ booking: result.booking, dayLabel, timeLabel, whatsappUrl, gcalUrl }, { status: 201 });
 }

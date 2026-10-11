@@ -25,9 +25,16 @@ export function BookingFlow() {
   const [sending, setSending] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [result, setResult] = useState<BookingResponse | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   async function loadAvailability() {
+    setLoadError(null);
     const res = await fetch('/api/availability?days=14');
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      setLoadError(body?.error ?? 'No pudimos cargar la disponibilidad. Intenta de nuevo.');
+      return;
+    }
     const data: DayAvailability[] = await res.json();
     setDays(data);
     if (dayIdx === null) {
@@ -39,6 +46,17 @@ export function BookingFlow() {
   useEffect(() => {
     loadAvailability();
   }, []);
+
+  if (loadError) {
+    return (
+      <section className={styles.section}>
+        <div className={[styles.loading, styles.loadErrorActions].join(' ')}>
+          <div className={styles.submitError}>{loadError}</div>
+          <Button size="lg" onClick={loadAvailability}>Reintentar</Button>
+        </div>
+      </section>
+    );
+  }
 
   if (!days) return <section className={styles.section}><p className={styles.loading}>Cargando disponibilidad…</p></section>;
 
@@ -55,20 +73,23 @@ export function BookingFlow() {
     }
     setSending(true);
     setSubmitError(null);
-    const res = await fetch('/api/bookings', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ classDate: day.date, minuteOfDay: slot, name, email, phone }),
-    });
-    const data = await res.json();
-    setSending(false);
-    if (!res.ok) {
-      setSubmitError(data.error ?? 'Error inesperado, intenta de nuevo.');
-      setSlot(null);
-      await loadAvailability();
-      return;
+    try {
+      const res = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ classDate: day.date, minuteOfDay: slot, name, email, phone }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setSubmitError(data?.error ?? 'Error inesperado, intenta de nuevo.');
+        setSlot(null);
+        await loadAvailability();
+        return;
+      }
+      setResult(data as BookingResponse);
+    } finally {
+      setSending(false);
     }
-    setResult(data as BookingResponse);
   }
 
   if (result) {

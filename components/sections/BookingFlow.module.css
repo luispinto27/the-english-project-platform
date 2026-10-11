@@ -18,6 +18,7 @@
 .dayNote { font: 500 11px var(--font-sans); }
 .slotsGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; }
 .submitError { background: var(--danger-500); color: var(--white); border-radius: 12px; padding: 10px 14px; font: 500 13px var(--font-sans); }
+.loadErrorActions { display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
 .confirmWrap { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; padding: 0 clamp(20px, 4vw, 32px); }
 .confirmTitle { margin: 0; font: 900 clamp(34px, 8vw, 56px)/1 var(--font-sans); }
 .confirmLead { margin: 0; font: 300 17px/1.5 var(--font-sans); color: var(--ink-300); }

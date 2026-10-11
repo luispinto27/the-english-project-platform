@@ -83,4 +83,49 @@ describe('BookingFlow', () => {
 
     await waitFor(() => expect(screen.getByText('Ese horario ya fue tomado, elige otro.')).toBeInTheDocument());
   });
+
+  it('shows an error state with a retry option instead of being stuck loading when the availability GET fails', async () => {
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({
+      ok: false,
+      status: 500,
+      json: () => Promise.resolve({ error: 'boom' }),
+    } as Response)));
+    render(<BookingFlow />);
+
+    await waitFor(() => expect(screen.getByText('boom')).toBeInTheDocument());
+    expect(screen.queryByText('Cargando disponibilidad…')).not.toBeInTheDocument();
+    expect(screen.getByText('Reintentar')).toBeInTheDocument();
+  });
+
+  it('returns the submit button to normal and shows a fallback error when POST fails with a bodyless 500', async () => {
+    let call = 0;
+    vi.stubGlobal('fetch', vi.fn(() => {
+      call += 1;
+      if (call === 1) {
+        return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(AVAILABILITY) } as Response);
+      }
+      if (call === 2) {
+        // Bodyless 500: res.json() itself throws (no valid JSON body).
+        return Promise.resolve({
+          ok: false,
+          status: 500,
+          json: () => Promise.reject(new SyntaxError('Unexpected end of JSON input')),
+        } as Response);
+      }
+      // Re-fetch of availability after the failed submit.
+      return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(AVAILABILITY) } as Response);
+    }));
+    render(<BookingFlow />);
+    await waitFor(() => screen.getByText('6:00 am'));
+
+    fireEvent.click(screen.getByText('6:00 am'));
+    fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: 'Ana' } });
+    fireEvent.change(screen.getByLabelText('Correo'), { target: { value: 'ana@test.com' } });
+    fireEvent.change(screen.getByLabelText('Teléfono / WhatsApp'), { target: { value: '3001234567' } });
+    fireEvent.click(screen.getByText(/^Agendar/));
+
+    await waitFor(() => expect(screen.getByText('Error inesperado, intenta de nuevo.')).toBeInTheDocument());
+    expect(screen.queryByText('Agendando…')).not.toBeInTheDocument();
+    expect(screen.getByText('Elige un horario')).toBeInTheDocument();
+  });
 });
