@@ -1,0 +1,14 @@
+/* components/sections/Hero.module.css */
+.section { padding: clamp(40px, 8vw, 88px) 0 clamp(56px, 8vw, 96px); overflow: hidden; }
+.inner { max-width: 1200px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 32px); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: clamp(36px, 6vw, 64px); align-items: center; }
+.copy { display: flex; flex-direction: column; gap: 22px; }
+.kicker { font: 700 15px/1.3 var(--font-sans); transform: rotate(-2deg); transform-origin: left; color: var(--ink-300); }
+.title { margin: 0; font: 900 clamp(40px, 10vw, 84px)/0.95 var(--font-sans); letter-spacing: -0.045em; }
+.lead { margin: 0; display: flex; gap: 10px; font: italic 300 clamp(18px, 4.4vw, 22px)/1.35 var(--font-sans); max-width: 540px; }
+.ctaBlock { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+.ctaNote { font: 300 14px/1.4 var(--font-sans); color: var(--ink-300); }
+.teacher { display: flex; align-items: center; gap: 14px; padding-top: 18px; border-top: 1.5px solid var(--ink-700); }
+.avatar { width: 44px; height: 44px; border-radius: 999px; background: var(--lime-500); color: var(--black); display: flex; align-items: center; justify-content: center; font: 900 16px var(--font-sans); }
+.teacherName { font: 800 17px/1.2 var(--font-sans); letter-spacing: -0.01em; }
+.teacherNote { font: 300 14px/1.3 var(--font-sans); color: var(--ink-300); }
+.photo { max-width: 440px; width: 100%; justify-self: center; }

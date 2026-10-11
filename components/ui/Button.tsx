@@ -2,7 +2,10 @@
 import type { ComponentType } from 'react';
 import styles from './Button.module.css';
 
-type IconProps = { size?: number; weight?: 'fill' | 'bold' };
+type IconProps = {
+  size?: number | string;
+  weight?: 'thin' | 'light' | 'regular' | 'bold' | 'fill' | 'duotone';
+};
 
 export function Button({
   children,
