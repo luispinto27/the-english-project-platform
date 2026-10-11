@@ -1,0 +1,7 @@
+.slot {
+  min-height: 46px; width: 100%; border-radius: 12px; border: 2.5px solid var(--black);
+  font: 600 14px var(--font-sans); cursor: pointer;
+}
+.available { background: var(--white); color: var(--black); }
+.booked { background: var(--ink-200); color: var(--ink-500); border-color: var(--ink-200); cursor: not-allowed; }
+.selected { background: var(--black); color: var(--lime-500); border-color: var(--lime-500); }

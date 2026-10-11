@@ -1,0 +1,4 @@
+.footer { background: var(--black); border-top: 1.5px solid var(--ink-700); padding: 40px 0; }
+.inner { max-width: 1200px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 32px); display: flex; flex-direction: column; gap: 8px; }
+.brand { font: 900 18px var(--font-sans); color: var(--white); }
+.note { font: 300 14px var(--font-sans); color: var(--ink-300); margin: 0; }
