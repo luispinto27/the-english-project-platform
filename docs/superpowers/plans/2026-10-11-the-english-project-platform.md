@@ -341,7 +341,7 @@ git commit -m "Add Drizzle schema for weekly_slots and bookings with anti-double
 
 **Interfaces:**
 - Consumes: nothing (pure function, no DB).
-- Produces: `computeAvailability(weeklySlots: WeeklySlot[], activeBookings: ActiveBooking[], opts: { days: number; now?: Date }): DayAvailability[]`, `WeeklySlot = { weekday: number; minuteOfDay: number; active: boolean }`, `ActiveBooking = { classDate: string; minuteOfDay: number }`, `DayAvailability = { date: string; weekday: number; slots: { minuteOfDay: number; status: 'available' | 'booked' }[] }`. Used by Task 5 (API route) and Task 12 (UI).
+- Produces: `computeAvailability(weeklySlots: WeeklySlot[], activeBookings: ActiveBooking[], opts: { days: number; now?: Date }): DayAvailability[]`, `WeeklySlot = { weekday: number; minuteOfDay: number; active: boolean }`, `ActiveBooking = { classDate: string; minuteOfDay: number }`, `DayAvailability = { date: string; weekday: number; slots: { minuteOfDay: number; status: 'available' | 'booked' }[] }`. Used by Task 6 (API route) and Task 12 (UI).
 
 - [ ] **Step 1: Write the failing test**
 
@@ -475,7 +475,7 @@ git commit -m "Add pure computeAvailability function with unit tests"
 
 **Interfaces:**
 - Consumes: `db` from `lib/db/client.ts` (Task 2), `weeklySlots`/`bookings` tables from `lib/db/schema.ts` (Task 2).
-- Produces: `createBooking(db: DbClient, input: CreateBookingInput): Promise<CreateBookingResult>`, `CreateBookingInput = { classDate: string; minuteOfDay: number; name: string; email: string; phone: string }`, `CreateBookingResult = { ok: true; booking: { id: number; classDate: string; minuteOfDay: number; name: string; email: string; phone: string } } | { ok: false; error: 'SLOT_NOT_AVAILABLE' | 'SLOT_TAKEN' }`, `cancelBooking(db: DbClient, id: number): Promise<void>`. Used by Task 5 (public API) and Task 8 (admin cancel API).
+- Produces: `createBooking(db: DbClient, input: CreateBookingInput): Promise<CreateBookingResult>`, `CreateBookingInput = { classDate: string; minuteOfDay: number; name: string; email: string; phone: string }`, `CreateBookingResult = { ok: true; booking: { id: number; classDate: string; minuteOfDay: number; name: string; email: string; phone: string } } | { ok: false; error: 'SLOT_NOT_AVAILABLE' | 'SLOT_TAKEN' }`, `cancelBooking(db: DbClient, id: number): Promise<void>`. Used by Task 6 (public API) and Task 8 (admin cancel API).
 
 - [ ] **Step 1: Write the failing test** (uses the same `DATABASE_URL_TEST` skip pattern as Task 2)
 
