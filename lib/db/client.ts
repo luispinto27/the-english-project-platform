@@ -10,7 +10,21 @@ function requireDatabaseUrl(): string {
   return url;
 }
 
-export const db = drizzle(neon(requireDatabaseUrl()), { schema });
+type DbClient = ReturnType<typeof drizzle<typeof schema>>;
+
+let _db: DbClient | undefined;
+function getDb(): DbClient {
+  if (!_db) {
+    _db = drizzle(neon(requireDatabaseUrl()), { schema });
+  }
+  return _db;
+}
+
+export const db: DbClient = new Proxy({} as DbClient, {
+  get(_target, prop, receiver) {
+    return Reflect.get(getDb(), prop, receiver);
+  },
+});
 
 export function createDbClient(databaseUrl: string) {
   return drizzle(neon(databaseUrl), { schema });
