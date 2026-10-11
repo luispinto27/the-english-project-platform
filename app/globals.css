@@ -1,0 +1,9 @@
+@import './tokens/fonts.css';
+@import './tokens/colors.css';
+@import './tokens/typography.css';
+@import './tokens/spacing.css';
+
+html, body { margin: 0; background: #000; color: #fff; font-family: var(--font-sans); }
+* { box-sizing: border-box; }
+a { color: var(--lime-500); text-decoration: underline; }
+a:hover { color: var(--lime-400); }
