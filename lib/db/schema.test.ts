@@ -1,8 +1,11 @@
+import { config } from 'dotenv';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { sql } from 'drizzle-orm';
 import { createDbClient } from './client';
 import { bookings } from './schema';
-import 'dotenv/config';
+
+config({ path: '.env.local' });
+config({ path: '.env' });
 
 const testUrl = process.env.DATABASE_URL_TEST;
 
