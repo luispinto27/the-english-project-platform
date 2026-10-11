@@ -3,4 +3,4 @@
   border-radius: 999px; font: 600 12px/1 var(--font-sans); border: 1.5px solid currentColor;
 }
 .outline { color: var(--ink-500); border-color: var(--ink-200); }
-.dark { background: #000; color: #fff; border-color: #000; }
+.dark { background: var(--black); color: var(--white); border-color: var(--black); }

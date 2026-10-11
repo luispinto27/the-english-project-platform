@@ -1,6 +1,6 @@
 .wrapper { display: flex; flex-direction: column; gap: 6px; font-family: var(--font-sans); }
 .label { font: 700 13px/1.2 var(--font-sans); }
-.input { border: 2.5px solid #000; border-radius: 14px; padding: 12px 14px; font: 400 15px var(--font-sans); background: #fff; color: #000; }
+.input { border: 2.5px solid var(--black); border-radius: 14px; padding: 12px 14px; font: 400 15px var(--font-sans); background: var(--white); color: var(--black); }
 .input:focus { outline: 2px solid var(--mint-500); outline-offset: 1px; }
 .inputError { border-color: var(--danger-500); }
 .error { color: var(--danger-500); font: 500 12px var(--font-sans); }
