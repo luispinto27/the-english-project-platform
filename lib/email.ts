@@ -46,12 +46,15 @@ export async function sendBookingConfirmation(p: EmailBookingParams): Promise<vo
   `);
   try {
     const client = getClient();
-    await client.emails.send({
+    const { error } = await client.emails.send({
       from: getFromAddress(),
       to: [p.email],
       subject: 'Tu prueba de inglés quedó agendada',
       html,
     });
+    if (error) {
+      console.error('sendBookingConfirmation failed', error);
+    }
   } catch (err) {
     console.error('sendBookingConfirmation failed', err);
   }
@@ -69,12 +72,15 @@ export async function sendAdminNotification(p: EmailBookingParams): Promise<void
   `);
   try {
     const client = getClient();
-    await client.emails.send({
+    const { error } = await client.emails.send({
       from: getFromAddress(),
       to: [adminEmail],
       subject: `Nueva reserva: ${p.name} — ${p.dayLabel}`,
       html,
     });
+    if (error) {
+      console.error('sendAdminNotification failed', error);
+    }
   } catch (err) {
     console.error('sendAdminNotification failed', err);
   }

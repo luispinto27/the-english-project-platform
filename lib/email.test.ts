@@ -36,6 +36,19 @@ describe('sendBookingConfirmation', () => {
     sendMock.mockRejectedValueOnce(new Error('network down'));
     await expect(sendBookingConfirmation(params)).resolves.toBeUndefined();
   });
+
+  it('logs and does not throw when Resend resolves with an API-level error (v6 does not reject for this)', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    sendMock.mockResolvedValueOnce({ data: null, error: { name: 'validation_error', message: 'Invalid `from` field' } });
+
+    await expect(sendBookingConfirmation(params)).resolves.toBeUndefined();
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      'sendBookingConfirmation failed',
+      expect.objectContaining({ message: 'Invalid `from` field' })
+    );
+    errorSpy.mockRestore();
+  });
 });
 
 describe('sendAdminNotification', () => {
@@ -45,5 +58,18 @@ describe('sendAdminNotification', () => {
     expect(call.to).toEqual(['luisfelipepint7@gmail.com']);
     expect(call.html).toContain('Ana');
     expect(call.html).toContain('3001234567');
+  });
+
+  it('logs and does not throw when Resend resolves with an API-level error (v6 does not reject for this)', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    sendMock.mockResolvedValueOnce({ data: null, error: { name: 'validation_error', message: 'Invalid `from` field' } });
+
+    await expect(sendAdminNotification(params)).resolves.toBeUndefined();
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      'sendAdminNotification failed',
+      expect.objectContaining({ message: 'Invalid `from` field' })
+    );
+    errorSpy.mockRestore();
   });
 });
