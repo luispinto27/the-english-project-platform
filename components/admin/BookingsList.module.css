@@ -1,0 +1,7 @@
+/* components/admin/BookingsList.module.css */
+.list { display: flex; flex-direction: column; gap: 12px; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 16px; border: 1.5px solid var(--ink-600); border-radius: 14px; padding: 14px 16px; }
+.name { font: 700 15px var(--font-sans); }
+.meta { font: 300 13px var(--font-sans); color: var(--ink-300); }
+.empty { color: var(--ink-300); }
+.error { color: var(--danger-500); }

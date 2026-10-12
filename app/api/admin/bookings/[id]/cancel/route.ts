@@ -7,6 +7,14 @@ export async function POST(_request: Request, { params }: { params: { id: string
   if (!Number.isInteger(id)) {
     return NextResponse.json({ error: 'id inválido' }, { status: 400 });
   }
-  await cancelBooking(db, id);
-  return NextResponse.json({ ok: true });
+  try {
+    await cancelBooking(db, id);
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error('POST /api/admin/bookings/[id]/cancel failed', err);
+    return NextResponse.json(
+      { error: 'No pudimos cancelar la reserva. Intenta de nuevo en un momento.' },
+      { status: 500 }
+    );
+  }
 }

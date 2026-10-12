@@ -1,0 +1,8 @@
+/* components/admin/ScheduleGrid.module.css */
+.wrap { display: flex; flex-direction: column; gap: 10px; }
+.row { display: flex; align-items: center; gap: 12px; }
+.rowLabel { width: 36px; font: 700 13px var(--font-sans); color: var(--ink-300); flex: none; }
+.cells { display: flex; flex-wrap: wrap; gap: 6px; }
+.cell { border: 1.5px solid var(--ink-600); background: transparent; color: var(--ink-300); border-radius: 10px; padding: 6px 10px; font: 500 12px var(--font-sans); cursor: pointer; }
+.cellActive { background: var(--lime-500); color: var(--black); border-color: var(--lime-500); }
+.error { color: var(--danger-500); }
