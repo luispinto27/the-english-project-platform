@@ -1,5 +1,5 @@
 import { config } from 'dotenv';
-import { describe, it, expect, beforeEach, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
 import { sql } from 'drizzle-orm';
 import { createDbClient } from './db/client';
 import { weeklySlots } from './db/schema';
@@ -12,6 +12,35 @@ const testUrl = process.env.DATABASE_URL_TEST;
 
 describe.skipIf(!testUrl)('createBooking', () => {
   const db = createDbClient(testUrl as string);
+
+  // This file runs as its own Vitest test file, and Vitest runs test files in parallel
+  // by default — it must not assume lib/db/schema.test.ts (or an external `db:push`) has
+  // already run and created the tables. This mirrors the exact bootstrap SQL from
+  // lib/db/schema.test.ts's beforeAll, including the partial unique index that backs the
+  // double-booking guard under test below.
+  beforeAll(async () => {
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS weekly_slots (
+        id serial PRIMARY KEY,
+        weekday smallint NOT NULL,
+        minute_of_day smallint NOT NULL,
+        active boolean NOT NULL DEFAULT true,
+        UNIQUE (weekday, minute_of_day)
+      );
+      CREATE TABLE IF NOT EXISTS bookings (
+        id serial PRIMARY KEY,
+        class_date date NOT NULL,
+        minute_of_day smallint NOT NULL,
+        name text NOT NULL,
+        email text NOT NULL,
+        phone text NOT NULL,
+        status text NOT NULL DEFAULT 'confirmed',
+        created_at timestamptz NOT NULL DEFAULT now()
+      );
+      CREATE UNIQUE INDEX IF NOT EXISTS bookings_date_slot_confirmed_idx
+        ON bookings (class_date, minute_of_day) WHERE status = 'confirmed';
+    `);
+  });
 
   beforeEach(async () => {
     await db.execute(sql`TRUNCATE bookings, weekly_slots RESTART IDENTITY;`);
@@ -56,6 +85,30 @@ describe.skipIf(!testUrl)('createBooking', () => {
     await cancelBooking(db, first.booking.id);
     const second = await createBooking(db, { classDate: '2026-11-02', minuteOfDay: 360, name: 'Beto', email: 'beto@test.com', phone: '3007654321' });
     expect(second.ok).toBe(true);
+  });
+
+  it('allows exactly one of several truly concurrent requests for the same date+slot to win', async () => {
+    // Fires all 5 createBooking calls together (not sequentially awaited) so they race
+    // against the same date+slot at the database level — the real concurrency guarantee
+    // the double-booking guard is meant to provide, as opposed to the sequential
+    // awaited-one-at-a-time test above.
+    const contenders = Array.from({ length: 5 }, (_, i) => ({
+      classDate: '2026-11-02',
+      minuteOfDay: 360,
+      name: `Contender ${i}`,
+      email: `contender${i}@test.com`,
+      phone: `300000000${i}`,
+    }));
+
+    const results = await Promise.all(contenders.map((input) => createBooking(db, input)));
+
+    const wins = results.filter((r) => r.ok);
+    const losses = results.filter((r) => !r.ok);
+    expect(wins).toHaveLength(1);
+    expect(losses).toHaveLength(4);
+    for (const loss of losses) {
+      expect(loss).toEqual({ ok: false, error: 'SLOT_TAKEN' });
+    }
   });
 });
 

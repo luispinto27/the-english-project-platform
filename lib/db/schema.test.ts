@@ -37,7 +37,13 @@ describe.skipIf(!testUrl)('schema', () => {
   });
 
   afterAll(async () => {
-    await db.execute(sql`DROP TABLE IF EXISTS bookings; DROP TABLE IF EXISTS weekly_slots;`);
+    // Intentionally does NOT drop the tables: lib/bookings.test.ts runs as a separate
+    // Vitest test file and Vitest runs files in parallel by default, so it can be racing
+    // against this file against the same test database. Dropping the tables here would
+    // yank them out from under bookings.test.ts mid-run. TRUNCATE instead leaves the
+    // tables in place for whichever file's beforeAll/beforeEach runs next (both use
+    // `CREATE TABLE IF NOT EXISTS`, so re-creation is idempotent either way).
+    await db.execute(sql`TRUNCATE bookings, weekly_slots RESTART IDENTITY;`);
   });
 
   it('rejects a second confirmed booking for the same date and slot', async () => {
