@@ -2,7 +2,11 @@ import { NextResponse } from 'next/server';
 import { createSessionToken, ADMIN_SESSION_COOKIE } from '@/lib/auth';
 
 export async function POST(request: Request) {
-  const { password } = await request.json();
+  const json = await request.json().catch(() => null);
+  if (json === null) {
+    return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 });
+  }
+  const { password } = json;
   const expected = process.env.ADMIN_PASSWORD;
   const secret = process.env.ADMIN_SESSION_SECRET;
   if (!expected || !secret) {

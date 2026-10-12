@@ -17,7 +17,11 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const { weekday, minuteOfDay, active } = await request.json();
+  const json = await request.json().catch(() => null);
+  if (json === null) {
+    return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 });
+  }
+  const { weekday, minuteOfDay, active } = json;
   if (typeof weekday !== 'number' || typeof minuteOfDay !== 'number' || typeof active !== 'boolean') {
     return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 });
   }
