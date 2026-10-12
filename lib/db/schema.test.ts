@@ -13,6 +13,8 @@ describe.skipIf(!testUrl)('schema', () => {
   const db = createDbClient(testUrl as string);
 
   beforeAll(async () => {
+    // The neon-http driver can't run multiple semicolon-separated statements
+    // in one prepared statement — each CREATE must be its own db.execute() call.
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS weekly_slots (
         id serial PRIMARY KEY,
@@ -20,7 +22,9 @@ describe.skipIf(!testUrl)('schema', () => {
         minute_of_day smallint NOT NULL,
         active boolean NOT NULL DEFAULT true,
         UNIQUE (weekday, minute_of_day)
-      );
+      )
+    `);
+    await db.execute(sql`
       CREATE TABLE IF NOT EXISTS bookings (
         id serial PRIMARY KEY,
         class_date date NOT NULL,
@@ -30,9 +34,11 @@ describe.skipIf(!testUrl)('schema', () => {
         phone text NOT NULL,
         status text NOT NULL DEFAULT 'confirmed',
         created_at timestamptz NOT NULL DEFAULT now()
-      );
+      )
+    `);
+    await db.execute(sql`
       CREATE UNIQUE INDEX IF NOT EXISTS bookings_date_slot_confirmed_idx
-        ON bookings (class_date, minute_of_day) WHERE status = 'confirmed';
+        ON bookings (class_date, minute_of_day) WHERE status = 'confirmed'
     `);
   });
 
@@ -48,22 +54,22 @@ describe.skipIf(!testUrl)('schema', () => {
 
   it('rejects a second confirmed booking for the same date and slot', async () => {
     await db.insert(bookings).values({
-      classDate: '2026-11-02', minuteOfDay: 360, name: 'A', email: 'a@a.com', phone: '3000000000',
+      classDate: '2026-12-01', minuteOfDay: 360, name: 'A', email: 'a@a.com', phone: '3000000000',
     });
 
     await expect(
       db.insert(bookings).values({
-        classDate: '2026-11-02', minuteOfDay: 360, name: 'B', email: 'b@b.com', phone: '3000000001',
+        classDate: '2026-12-01', minuteOfDay: 360, name: 'B', email: 'b@b.com', phone: '3000000001',
       })
     ).rejects.toThrow();
   });
 
   it('allows a new confirmed booking once the conflicting one is cancelled', async () => {
-    await db.update(bookings).set({ status: 'cancelled' }).where(sql`class_date = '2026-11-02' AND minute_of_day = 360`);
+    await db.update(bookings).set({ status: 'cancelled' }).where(sql`class_date = '2026-12-01' AND minute_of_day = 360`);
 
     await expect(
       db.insert(bookings).values({
-        classDate: '2026-11-02', minuteOfDay: 360, name: 'C', email: 'c@c.com', phone: '3000000002',
+        classDate: '2026-12-01', minuteOfDay: 360, name: 'C', email: 'c@c.com', phone: '3000000002',
       })
     ).resolves.toBeDefined();
   });

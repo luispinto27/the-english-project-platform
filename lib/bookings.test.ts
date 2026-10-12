@@ -19,6 +19,8 @@ describe.skipIf(!testUrl)('createBooking', () => {
   // lib/db/schema.test.ts's beforeAll, including the partial unique index that backs the
   // double-booking guard under test below.
   beforeAll(async () => {
+    // The neon-http driver can't run multiple semicolon-separated statements
+    // in one prepared statement — each CREATE must be its own db.execute() call.
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS weekly_slots (
         id serial PRIMARY KEY,
@@ -26,7 +28,9 @@ describe.skipIf(!testUrl)('createBooking', () => {
         minute_of_day smallint NOT NULL,
         active boolean NOT NULL DEFAULT true,
         UNIQUE (weekday, minute_of_day)
-      );
+      )
+    `);
+    await db.execute(sql`
       CREATE TABLE IF NOT EXISTS bookings (
         id serial PRIMARY KEY,
         class_date date NOT NULL,
@@ -36,9 +40,11 @@ describe.skipIf(!testUrl)('createBooking', () => {
         phone text NOT NULL,
         status text NOT NULL DEFAULT 'confirmed',
         created_at timestamptz NOT NULL DEFAULT now()
-      );
+      )
+    `);
+    await db.execute(sql`
       CREATE UNIQUE INDEX IF NOT EXISTS bookings_date_slot_confirmed_idx
-        ON bookings (class_date, minute_of_day) WHERE status = 'confirmed';
+        ON bookings (class_date, minute_of_day) WHERE status = 'confirmed'
     `);
   });
 
