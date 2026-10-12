@@ -21,7 +21,14 @@ function getFromAddress(): string {
   // Falls back to Resend's shared test sender, which works with no domain
   // verification — swap in a verified address via RESEND_FROM once a real
   // domain is attached to the project (see README).
-  return process.env.RESEND_FROM ?? 'The English Project <onboarding@resend.dev>';
+  //
+  // Uses `||`, not `??`: .env.local commonly has a present-but-blank
+  // `RESEND_FROM=` line (e.g. copied from .env.example and left unfilled),
+  // which makes process.env.RESEND_FROM an empty string, not undefined —
+  // `??` would keep that empty string instead of falling back, and Resend
+  // rejects an empty `from` with a misleading "The domain is invalid" error
+  // (confirmed live: every send failed with `from: ""` until this fix).
+  return process.env.RESEND_FROM || 'The English Project <onboarding@resend.dev>';
 }
 
 const wrapper = (title: string, bodyHtml: string) => `
