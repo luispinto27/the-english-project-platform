@@ -23,7 +23,11 @@ export function BookingsList() {
   useEffect(() => { load(); }, []);
 
   async function cancel(id: number) {
-    await fetch(`/api/admin/bookings/${id}/cancel`, { method: 'POST' });
+    const res = await fetch(`/api/admin/bookings/${id}/cancel`, { method: 'POST' });
+    if (!res.ok) {
+      setError('No pudimos cancelar la reserva. Intenta de nuevo en un momento.');
+      return;
+    }
     await load();
   }
 

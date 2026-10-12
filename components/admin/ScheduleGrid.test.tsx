@@ -35,4 +35,22 @@ describe('ScheduleGrid', () => {
     await waitFor(() => expect(screen.getByText('No pudimos cargar los horarios. Intenta de nuevo en un momento.')).toBeInTheDocument());
     expect(screen.queryByText('Cargando horarios…')).not.toBeInTheDocument();
   });
+
+  it('shows an error message and does not reload when the toggle POST fails', async () => {
+    const fetchMock = vi.fn((url: string, init?: RequestInit) => {
+      if (init?.method === 'POST') {
+        return Promise.resolve({ ok: false, status: 500, json: () => Promise.resolve({ error: 'boom' }) } as Response);
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve([]) } as Response);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<ScheduleGrid />);
+    const cell = await waitFor(() => screen.getAllByText('6:00 am')[0]);
+    fireEvent.click(cell);
+
+    await waitFor(() => expect(screen.getByText('No pudimos guardar el cambio. Intenta de nuevo en un momento.')).toBeInTheDocument());
+    // Only the initial GET ran; the failed POST must not trigger a reload.
+    expect(fetchMock.mock.calls.filter(([, init]) => !init || init.method !== 'POST')).toHaveLength(1);
+  });
 });

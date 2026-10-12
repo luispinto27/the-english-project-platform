@@ -41,4 +41,22 @@ describe('BookingsList', () => {
     await waitFor(() => expect(screen.getByText('No pudimos cargar las reservas. Intenta de nuevo en un momento.')).toBeInTheDocument());
     expect(screen.queryByText('Cargando reservas…')).not.toBeInTheDocument();
   });
+
+  it('shows an error message and keeps the booking when the cancel POST fails', async () => {
+    const fetchMock = vi.fn((url: string, init?: RequestInit) => {
+      if (init?.method === 'POST') {
+        return Promise.resolve({ ok: false, status: 500, json: () => Promise.resolve({ error: 'boom' }) } as Response);
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve([BOOKING]) } as Response);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<BookingsList />);
+    await waitFor(() => screen.getByText('Ana'));
+    fireEvent.click(screen.getByText('Cancelar'));
+
+    await waitFor(() => expect(screen.getByText('No pudimos cancelar la reserva. Intenta de nuevo en un momento.')).toBeInTheDocument());
+    // Only the initial GET ran; the failed POST must not trigger a reload.
+    expect(fetchMock.mock.calls.filter(([, init]) => !init || init.method !== 'POST')).toHaveLength(1);
+  });
 });

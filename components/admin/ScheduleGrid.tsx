@@ -31,11 +31,15 @@ export function ScheduleGrid() {
     slots.some((s) => s.weekday === weekday && s.minuteOfDay === minuteOfDay && s.active);
 
   async function toggle(weekday: number, minuteOfDay: number) {
-    await fetch('/api/admin/weekly-slots', {
+    const res = await fetch('/api/admin/weekly-slots', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ weekday, minuteOfDay, active: !isActive(weekday, minuteOfDay) }),
     });
+    if (!res.ok) {
+      setError('No pudimos guardar el cambio. Intenta de nuevo en un momento.');
+      return;
+    }
     await load();
   }
 
