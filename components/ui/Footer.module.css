@@ -2,3 +2,5 @@
 .inner { max-width: 1200px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 32px); display: flex; flex-direction: column; gap: 8px; }
 .brand { font: 900 18px var(--font-sans); color: var(--white); }
 .note { font: 300 14px var(--font-sans); color: var(--ink-300); margin: 0; }
+.adminLink { font: 400 12px var(--font-sans); color: var(--ink-500); text-decoration: none; margin-top: 8px; width: fit-content; }
+.adminLink:hover { color: var(--ink-300); text-decoration: underline; }
