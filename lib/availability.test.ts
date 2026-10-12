@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { computeAvailability } from './availability';
+import { todayInBogota, addDaysToIsoDate } from './timezone';
 
 const SUNDAY_2026_11_01 = new Date('2026-11-01T12:00:00');
 const MONDAY_2026_11_02 = new Date('2026-11-02T12:00:00');
@@ -38,5 +39,16 @@ describe('computeAvailability', () => {
   it('generates `days` consecutive calendar days starting the day after `now`', () => {
     const result = computeAvailability([], [], { days: 3, now: MONDAY_2026_11_02 });
     expect(result.map((d) => d.date)).toEqual(['2026-11-03', '2026-11-04', '2026-11-05']);
+  });
+
+  it('defaults to Bogota "today" (not server-local/UTC time) when `now` is omitted', () => {
+    // Regression test: the server may run in UTC (e.g. on Vercel), which drifts a full
+    // calendar day ahead of America/Bogota during part of the evening/night. The day
+    // window must always be anchored to Bogota's actual calendar date, not whatever
+    // `new Date()` reports in the server's own local time.
+    const result = computeAvailability([], [], { days: 2 });
+    const expectedFirstDay = addDaysToIsoDate(todayInBogota(), 1);
+    const expectedSecondDay = addDaysToIsoDate(todayInBogota(), 2);
+    expect(result.map((d) => d.date)).toEqual([expectedFirstDay, expectedSecondDay]);
   });
 });

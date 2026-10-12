@@ -1,3 +1,5 @@
+import { todayInBogota } from './timezone';
+
 export type WeeklySlot = { weekday: number; minuteOfDay: number; active: boolean };
 export type ActiveBooking = { classDate: string; minuteOfDay: number };
 export type DayAvailability = {
@@ -18,9 +20,26 @@ export function computeAvailability(
   activeBookings: ActiveBooking[],
   opts: { days: number; now?: Date }
 ): DayAvailability[] {
-  const now = opts.now ?? new Date();
-  const base = new Date(now);
-  base.setHours(12, 0, 0, 0);
+  // When `now` is explicitly provided (as every existing test does, for determinism),
+  // keep the original behavior exactly: treat it as a plain local-time Date and do
+  // calendar-date arithmetic on it directly — tests construct `now` as a plain local
+  // Date and assert against plain calendar-date arithmetic, so forcing a Bogota-timezone
+  // conversion on an explicitly-injected test date would break them.
+  //
+  // Only when `now` is omitted (real production use via `new Date()`) do we need to be
+  // timezone-aware: the server's own local time is UTC on Vercel, which is a full
+  // calendar day ahead of America/Bogota for part of the evening/night, so deriving
+  // "today" from the server's local date would offset the whole day-generation window by
+  // a day during those hours. Instead, derive Bogota's actual calendar "today" first, then
+  // do the same local calendar-date arithmetic the tests rely on, anchored to that date.
+  let base: Date;
+  if (opts.now) {
+    base = new Date(opts.now);
+    base.setHours(12, 0, 0, 0);
+  } else {
+    const [y, m, d] = todayInBogota().split('-').map(Number);
+    base = new Date(y, m - 1, d, 12, 0, 0, 0);
+  }
 
   const bookedByDate = new Map<string, Set<number>>();
   for (const b of activeBookings) {

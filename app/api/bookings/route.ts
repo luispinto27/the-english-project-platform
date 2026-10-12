@@ -5,9 +5,30 @@ import { createBooking } from '@/lib/bookings';
 import { sendBookingConfirmation, sendAdminNotification } from '@/lib/email';
 import { fmtDayLabel, fmtTime } from '@/lib/format';
 import { buildGcalUrl, buildWhatsappUrl } from '@/lib/booking-links';
+import { todayInBogota, addDaysToIsoDate } from '@/lib/timezone';
+
+// `days` ahead the booking window stays open. Deliberately generous relative to
+// computeAvailability's own default of 14 days (the UI's picker only ever offers up to
+// that many days ahead) — the API itself accepts an arbitrary `days` query param for
+// /api/availability, so this just guards against obviously-bogus dates rather than
+// second-guessing a legitimate wider window.
+const MAX_DAYS_AHEAD = 60;
+
+function isRealCalendarDate(isoDate: string): boolean {
+  const [y, m, d] = isoDate.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  // An invalid day (e.g. 2026-02-31) rolls over into the next month instead of throwing —
+  // Date silently normalizes it — so round-tripping the parts back out is how we detect it.
+  return date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d;
+}
 
 const bodySchema = z.object({
-  classDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  classDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha inválida')
+    .refine(isRealCalendarDate, 'Fecha inválida')
+    .refine((v) => v >= todayInBogota(), 'Esa fecha ya pasó')
+    .refine((v) => v <= addDaysToIsoDate(todayInBogota(), MAX_DAYS_AHEAD), 'Fecha fuera de rango'),
   minuteOfDay: z.number().int().min(0).max(1439),
   name: z.string().trim().min(2, 'Escribe tu nombre'),
   email: z.string().trim().email('Revisa tu correo'),

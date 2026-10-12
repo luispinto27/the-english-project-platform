@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { and, eq, gte } from 'drizzle-orm';
 import { db } from '@/lib/db/client';
 import { bookings } from '@/lib/db/schema';
+import { todayInBogota } from '@/lib/timezone';
 
 // Without `dynamic`, Next.js statically optimizes this route at build time (it's the
 // only GET-only handler in the app with no request params and no sibling POST in the
@@ -19,7 +20,11 @@ export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
 export async function GET() {
-  const today = new Date().toISOString().slice(0, 10);
+  // Must be "today" in America/Bogota, not the server's own local/UTC date — on Vercel
+  // the server runs in UTC, which is a full day ahead of Bogota for part of the evening/
+  // night. Using raw UTC here would incorrectly exclude bookings scheduled for later
+  // tonight (Bogota time) from the "upcoming" list.
+  const today = todayInBogota();
   try {
     const rows = await db
       .select()
