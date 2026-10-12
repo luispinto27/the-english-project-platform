@@ -59,12 +59,35 @@ export async function createBooking(
       },
     };
   } catch (err: unknown) {
-    const dbErr = err as { code?: string; constraint?: string };
-    if (dbErr?.code === '23505' && dbErr?.constraint === 'bookings_date_slot_confirmed_idx') {
+    if (isUniqueConstraintViolation(err, 'bookings_date_slot_confirmed_idx')) {
       return { ok: false, error: 'SLOT_TAKEN' };
     }
     throw err;
   }
+}
+
+/**
+ * Checks whether `err` represents a Postgres unique-violation (SQLSTATE 23505) on the
+ * given constraint. drizzle-orm's neon-http driver wraps the raw Postgres error (which
+ * carries `.code`/`.constraint`) inside a `DrizzleQueryError`, exposing the original as
+ * `.cause` rather than on the thrown error itself — so this walks the `cause` chain
+ * (bounded, to avoid an infinite loop on a malformed/circular cause) instead of only
+ * checking the top-level error.
+ */
+function isUniqueConstraintViolation(err: unknown, constraintName: string): boolean {
+  let current: unknown = err;
+  for (let depth = 0; current && depth < 5; depth++) {
+    if (typeof current === 'object') {
+      const candidate = current as { code?: unknown; constraint?: unknown; cause?: unknown };
+      if (candidate.code === '23505' && candidate.constraint === constraintName) {
+        return true;
+      }
+      current = candidate.cause;
+    } else {
+      break;
+    }
+  }
+  return false;
 }
 
 export async function cancelBooking(db: typeof DbClient, id: number): Promise<void> {
