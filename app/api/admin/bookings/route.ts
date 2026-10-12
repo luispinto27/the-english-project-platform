@@ -3,6 +3,21 @@ import { and, eq, gte } from 'drizzle-orm';
 import { db } from '@/lib/db/client';
 import { bookings } from '@/lib/db/schema';
 
+// Without `dynamic`, Next.js statically optimizes this route at build time (it's the
+// only GET-only handler in the app with no request params and no sibling POST in the
+// same file — see app/api/admin/weekly-slots/route.ts, which has both and is correctly
+// left dynamic). A statically-optimized response would freeze the admin bookings list
+// to whatever was in the database at build time, never reflecting real reservations.
+//
+// `dynamic` alone isn't enough, though: the neon-http driver issues its queries via
+// plain `fetch()` under the hood, and Next.js's Data Cache can still cache that
+// *individual* fetch indefinitely (confirmed live — a cancelled booking kept coming
+// back as "confirmed" on refetch within the same server lifetime even with `dynamic`
+// set). `fetchCache = 'force-no-store'` disables that cache for every fetch this route
+// makes, regardless of what the driver requests.
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
 export async function GET() {
   const today = new Date().toISOString().slice(0, 10);
   try {
