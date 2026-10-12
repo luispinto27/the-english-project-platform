@@ -58,8 +58,9 @@ export async function createBooking(
         phone: row.phone,
       },
     };
-  } catch (err: any) {
-    if (err?.code === '23505' && err?.constraint === 'bookings_date_slot_confirmed_idx') {
+  } catch (err: unknown) {
+    const dbErr = err as { code?: string; constraint?: string };
+    if (dbErr?.code === '23505' && dbErr?.constraint === 'bookings_date_slot_confirmed_idx') {
       return { ok: false, error: 'SLOT_TAKEN' };
     }
     throw err;

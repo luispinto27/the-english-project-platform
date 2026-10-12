@@ -2,7 +2,7 @@ import { config } from 'dotenv';
 import { describe, it, expect, beforeEach, afterAll } from 'vitest';
 import { sql } from 'drizzle-orm';
 import { createDbClient } from './db/client';
-import { weeklySlots, bookings } from './db/schema';
+import { weeklySlots } from './db/schema';
 import { createBooking, cancelBooking } from './bookings';
 
 config({ path: '.env.local' });
