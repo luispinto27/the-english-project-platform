@@ -6,7 +6,8 @@ import { computeAvailability } from '@/lib/availability';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const days = Number(searchParams.get('days') ?? '14');
+  const rawDays = Number(searchParams.get('days') ?? '14');
+  const days = Number.isFinite(rawDays) ? Math.min(Math.max(rawDays, 1), 60) : 14;
 
   try {
     const slots = await db.select().from(weeklySlots);
